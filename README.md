@@ -64,8 +64,6 @@ pip install -r requirements.txt
 Download the following files and place them in the project root directory:
 
 1. **yolov3.weights**: Download from [YOLO official website](https://pjreddie.com/darknet/yolo/)
-2. **yolov3.cfg**: Available in Darknet repository
-3. **coco.names**: Download from [Darknet GitHub](https://github.com/pjreddie/darknet/blob/master/data/coco.names)
 
 ### 4. Configure ESP32
 - Upload the MicroPython code to your ESP32 using Thonny IDE
