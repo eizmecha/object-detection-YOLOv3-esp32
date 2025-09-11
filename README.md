@@ -90,7 +90,7 @@ python main.py
 ### Step 4: Monitor Results
 - Object detection results will display on your computer screen
 - Detection data will be sent to ESP32 via MQTT
-- ESP32 will output received detections to serial monitor
+- ESP32 will output received detections to do actions
 
 ## 📡 MQTT Configuration
 
