@@ -37,7 +37,7 @@
       <!-- Base link -->
       <link name="base_link">
         <pose>0 0 0 0 0 0</pose>
-        
+
         <!-- Inertial properties -->
         <inertial>
           <pose>0 0 0 0 0 0</pose>
@@ -85,31 +85,54 @@
         </visual>
       </link>
 
-      <!-- Add motors (vertical and pusher) -->
+      <!-- Add vertical lift motors -->
       <link name="motor_front_left">
         <pose>0.30 0.35 0.10 0 0 0</pose>
-        <!-- Motor properties -->
+        <velocity_decay>
+          <linear>0.1</linear>  <!-- Ensure smooth acceleration and deceleration -->
+          <angular>0.1</angular>
+        </velocity_decay>
+        <!-- Motor properties for vertical lift -->
       </link>
 
       <link name="motor_front_right">
         <pose>0.30 -0.35 0.10 0 0 0</pose>
-        <!-- Motor properties -->
+        <velocity_decay>
+          <linear>0.1</linear>
+          <angular>0.1</angular>
+        </velocity_decay>
+        <!-- Motor properties for vertical lift -->
       </link>
 
       <link name="motor_rear_left">
         <pose>-0.30 0.35 0.10 0 0 0</pose>
-        <!-- Motor properties -->
+        <velocity_decay>
+          <linear>0.1</linear>
+          <angular>0.1</angular>
+        </velocity_decay>
+        <!-- Motor properties for vertical lift -->
       </link>
 
       <link name="motor_rear_right">
         <pose>-0.30 -0.35 0.10 0 0 0</pose>
-        <!-- Motor properties -->
+        <velocity_decay>
+          <linear>0.1</linear>
+          <angular>0.1</angular>
+        </velocity_decay>
+        <!-- Motor properties for vertical lift -->
       </link>
 
+      <!-- Pusher motor (disabled during vertical takeoff stage) -->
       <link name="pusher_motor">
         <pose>0.50 0 0.15 0 0 0</pose>
-        <!-- Motor properties -->
+        <velocity_decay>
+          <linear>0.1</linear>
+          <angular>0.1</angular>
+        </velocity_decay>
+        <!-- Motor properties, keep it disabled during vertical takeoff stage -->
       </link>
+
+      <!-- Control surfaces and servos setup (for later transition to horizontal flight) -->
     </model>
   </world>
 </sdf>
