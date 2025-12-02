@@ -1,0 +1,844 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="super_vtol">
+    <!-- Spawn slightly above ground -->
+    <pose>0 0 0.3 0 0 0</pose>
+
+    <!--
+      BASE LINK
+      Represents fuselage + wing structure of the Super Stingray VTOL.
+      Mass here (~2.5 kg) plus rotors, elevons, and sensors will sum
+      to approximately 2.8 kg AUW.
+    -->
+    <link name="base_link">
+      <!-- Link pose in model frame -->
+      <pose>0 0 0 0 0 0</pose>
+
+      <!-- Inertial properties: CG ~60 mm behind origin in X -->
+      <inertial>
+        <pose>-0.06 0 0 0 0 0</pose>
+        <mass>2.5</mass>
+        <inertia>
+          <ixx>0.20</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.15</iyy>
+          <iyz>0</iyz>
+          <izz>0.25</izz>
+        </inertia>
+      </inertial>
+
+      <!-- Collision geometry: simple box approximating fuselage + wing volume -->
+      <collision name="base_link_collision">
+        <pose>0 0 -0.05 0 0 0</pose>
+        <geometry>
+          <box>
+            <!-- length (X), span (Y), thickness (Z) -->
+            <size>0.70 1.13 0.12</size>
+          </box>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <!-- Low friction to avoid sticky ground behavior -->
+              <mu>0.01</mu>
+              <mu2>0.01</mu2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>100000.0</kp>
+              <kd>1.0</kd>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+
+      <!-- Main visual: Super Stingray wing + fuselage mesh -->
+      <visual name="base_link_visual">
+        <geometry>
+          <mesh>
+            <!-- Keep same scale as working standard_vtol to avoid deformation -->
+            <scale>0.52 0.52 0.52</scale>
+            <uri>model://super_vtol/meshes/super_wing.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.05 0.05 0.05 1</ambient>
+          <diffuse>0.05 0.05 0.05 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Left boom (visual only) -->
+      <visual name="left_boom">
+        <pose>-0.06 0.18 -0.0175 0 1.5707 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.50</length>
+            <radius>0.008</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Right boom (visual only) -->
+      <visual name="right_boom">
+        <pose>-0.06 -0.18 -0.0175 0 1.5707 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.50</length>
+            <radius>0.008</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Motor can geometries (visual only, props are separate rotor links) -->
+      <visual name="motor_fr">
+        <pose>0.19 -0.18 0.003 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.025</length>
+            <radius>0.016</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="motor_rr">
+        <pose>-0.31 -0.18 0.003 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.025</length>
+            <radius>0.016</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="motor_fl">
+        <pose>0.19 0.18 0.003 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.025</length>
+            <radius>0.016</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="motor_rl">
+        <pose>-0.31 0.18 0.003 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.025</length>
+            <radius>0.016</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Rear pusher motor can (visual only, prop will be separate rotor link) -->
+      <visual name="motor_pusher">
+        <pose>-0.16 0 0 0 1.57 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.035</length>
+            <radius>0.018</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+        </material>
+      </visual>
+
+    </link>
+    <!-- VTOL rotor links will be added next -->
+    <!-- ========================================================= -->
+    <!-- VTOL ROTORS (4 vertical + 1 rear pusher)                  -->
+    <!-- ========================================================= -->
+
+    <!-- VTOL rotor 0: front-right (uses CCW mesh) -->
+    <link name="rotor_0">
+      <pose>0.19 -0.18 0.018 0 0 0</pose>
+      <inertial>
+        <mass>0.04</mass>
+        <inertia>
+          <ixx>5e-5</ixx>
+          <iyy>5e-5</iyy>
+          <izz>5e-5</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_0_visual">
+        <geometry>
+          <mesh>
+            <scale>0.7 0.7 0.7</scale>
+            <uri>model://super_vtol/meshes/vtol_prop_ccw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_0_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_0</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+        </limit>
+        <!-- Small damping to avoid oscillatory spin -->
+        <dynamics>
+          <damping>0.003</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- Two-blade aero model for rotor 0 -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 1 -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <!-- Tangential direction -->
+      <forward>0 1 0</forward>
+      <!-- Lift upwards in +Z -->
+      <upward>0 0 1</upward>
+      <link_name>rotor_0</link_name>
+    </plugin>
+
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 2 (opposite side) -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>-0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 -1 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>rotor_0</link_name>
+    </plugin>
+
+    <!-- VTOL rotor 1: rear-left (uses CCW mesh) -->
+    <link name="rotor_1">
+      <pose>-0.31 0.18 0.018 0 0 0</pose>
+      <inertial>
+        <mass>0.04</mass>
+        <inertia>
+          <ixx>5e-5</ixx>
+          <iyy>5e-5</iyy>
+          <izz>5e-5</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_1_visual">
+        <geometry>
+          <mesh>
+            <scale>0.7 0.7 0.7</scale>
+            <uri>model://super_vtol/meshes/vtol_prop_ccw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_1_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_1</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <dynamics>
+          <damping>0.003</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- Two-blade aero model for rotor 1 -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 1 -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 1 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>rotor_1</link_name>
+    </plugin>
+
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 2 -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>-0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 -1 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>rotor_1</link_name>
+    </plugin>
+
+    <!-- VTOL rotor 2: front-left (uses CW mesh) -->
+    <link name="rotor_2">
+      <pose>0.19 0.18 0.018 0 0 0</pose>
+      <inertial>
+        <mass>0.04</mass>
+        <inertia>
+          <ixx>5e-5</ixx>
+          <iyy>5e-5</iyy>
+          <izz>5e-5</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_2_visual">
+        <geometry>
+          <mesh>
+            <scale>0.7 0.7 0.7</scale>
+            <uri>model://super_vtol/meshes/vtol_prop_cw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_2_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_2</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <dynamics>
+          <damping>0.003</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- Two-blade aero model for rotor 2 -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 1 -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 -1 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>rotor_2</link_name>
+    </plugin>
+
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 2 -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>-0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 1 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>rotor_2</link_name>
+    </plugin>
+
+    <!-- VTOL rotor 3: rear-right (uses CW mesh) -->
+    <link name="rotor_3">
+      <pose>-0.31 -0.18 0.018 0 0 0</pose>
+      <inertial>
+        <mass>0.04</mass>
+        <inertia>
+          <ixx>5e-5</ixx>
+          <iyy>5e-5</iyy>
+          <izz>5e-5</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_3_visual">
+        <geometry>
+          <mesh>
+            <scale>0.7 0.7 0.7</scale>
+            <uri>model://super_vtol/meshes/vtol_prop_cw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_3_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_3</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <dynamics>
+          <damping>0.003</damping>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- Two-blade aero model for rotor 3 -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 1 -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 -1 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>rotor_3</link_name>
+    </plugin>
+
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 2 -->
+      <a0>0.3</a0>
+      <cla>4.25</cla>
+      <cda>0.01</cda>
+      <area>0.01</area>
+      <cp>-0.085 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 1 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>rotor_3</link_name>
+    </plugin>
+
+    <!-- Rear pusher rotor (forward-flight prop) -->
+    <link name="rotor_pusher">
+      <pose>-0.18 0 0 0 1.57 0</pose>
+      <inertial>
+        <mass>0.06</mass>
+        <inertia>
+          <ixx>8e-5</ixx>
+          <iyy>8e-5</iyy>
+          <izz>8e-5</izz>
+        </inertia>
+      </inertial>
+      <visual name="rotor_pusher_visual">
+        <geometry>
+          <mesh>
+            <scale>1.0 1.0 1.0</scale>
+            <uri>model://super_vtol/meshes/vtol_prop_ccw.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rotor_pusher_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_pusher</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+    </joint>
+
+    <!-- Aerodynamics for rear pusher rotor (thrust along +X) -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 1 -->
+      <a0>0.3</a0>
+      <cla>4.5</cla>
+      <cda>0.02</cda>
+      <area>0.03</area>
+      <cp>0.06 0 0</cp>
+      <air_density>1.2041</air_density>
+      <!-- Tangential direction -->
+      <forward>0 1 0</forward>
+      <!-- Lift direction aligned with +X (forward thrust) -->
+      <upward>1 0 0</upward>
+      <link_name>rotor_pusher</link_name>
+    </plugin>
+
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Blade 2 -->
+      <a0>0.3</a0>
+      <cla>4.5</cla>
+      <cda>0.02</cda>
+      <area>0.03</area>
+      <cp>-0.11 0 0</cp>
+      <air_density>1.2041</air_density>
+      <forward>0 -1 0</forward>
+      <upward>1 0 0</upward>
+      <link_name>rotor_pusher</link_name>
+    </plugin>
+    <!-- ========================================================= -->
+    <!-- MAIN WING AERODYNAMICS (S5020-BASED APPROXIMATION)       -->
+    <!-- ========================================================= -->
+
+    <!--
+      Main wing / body LiftDrag model.
+      Parameters are chosen close to your working standard_vtol setup,
+      consistent with an S5020-like airfoil and a wing reference area
+      around 0.31 m^2. This will be the primary lift provider in
+      forward flight.
+    -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Zero-lift angle (rad), small positive since S5020 has camber -->
+      <a0>0.13</a0>
+      <!-- Lift curve slope (1/rad) -->
+      <cla>3.7</cla>
+      <!-- Baseline drag coefficient (CD0) -->
+      <cda>0.06</cda>
+      <!-- Effective reference area (m^2) for entire wing/body -->
+      <area>0.31</area>
+      <air_density>1.2041</air_density>
+      <!-- Body-X forward, Z up in model frame -->
+      <forward>1 0 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>base_link</link_name>
+    </plugin>
+
+    <!-- ========================================================= -->
+    <!-- ELEVONS (LEFT / RIGHT) + THEIR AERO EFFECTS              -->
+    <!-- ========================================================= -->
+
+    <!-- LEFT ELEVON LINK -->
+    <link name="left_elevon">
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+        </inertia>
+      </inertial>
+      <visual name="left_elevon_visual">
+        <geometry>
+          <mesh>
+            <!-- Same scale as original X8 elevon mesh -->
+            <scale>0.52 0.52 0.52</scale>
+            <uri>model://super_vtol/meshes/super_elevon_left.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <!-- LEFT ELEVON JOINT (HINGE) -->
+    <joint name="left_elevon_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>left_elevon</child>
+      <!-- Position of hinge on left wing trailing edge -->
+      <pose>-0.25 0.40 0 0 0 0</pose>
+      <axis>
+        <!-- Hinge axis along body-Y -->
+        <xyz>0 1 0</xyz>
+        <limit>
+          <!-- Approx. ±30 degrees -->
+          <lower>-0.53</lower>
+          <upper>0.53</upper>
+        </limit>
+        <dynamics>
+          <!-- Enough damping and stiffness to avoid flutter -->
+          <damping>5.0</damping>
+          <spring_stiffness>100.0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- LEFT ELEVON AERODYNAMIC EFFECT -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <!-- Baseline angle offset for elevon section -->
+      <a0>0.15</a0>
+      <!-- High lift slope since this is a control surface section -->
+      <cla>6.8</cla>
+      <cda>0.06</cda>
+      <!-- Small reference area for left elevon (m^2) -->
+      <area>0.04</area>
+      <air_density>1.2041</air_density>
+      <forward>1 0 0</forward>
+      <upward>0 0 1</upward>
+      <!-- Force applied to main body to represent elevon effect -->
+      <link_name>base_link</link_name>
+      <!-- Control coupling from joint angle to CL -->
+      <control_joint_name>left_elevon_joint</control_joint_name>
+      <!-- Negative: up-elevon (positive deflection) reduces lift on that side for roll -->
+      <control_joint_rad_to_cl>-4.0</control_joint_rad_to_cl>
+    </plugin>
+
+    <!-- RIGHT ELEVON LINK -->
+    <link name="right_elevon">
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+        </inertia>
+      </inertial>
+      <visual name="right_elevon_visual">
+        <geometry>
+          <mesh>
+            <scale>0.52 0.52 0.52</scale>
+            <uri>model://super_vtol/meshes/super_elevon_right.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <!-- RIGHT ELEVON JOINT (HINGE) -->
+    <joint name="right_elevon_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>right_elevon</child>
+      <!-- Symmetric position on right wing trailing edge -->
+      <pose>-0.25 -0.40 0 0 0 0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-0.53</lower>
+          <upper>0.53</upper>
+        </limit>
+        <dynamics>
+          <damping>5.0</damping>
+          <spring_stiffness>100.0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- RIGHT ELEVON AERODYNAMIC EFFECT -->
+    <plugin filename="gz-sim-lift-drag-system" name="gz::sim::systems::LiftDrag">
+      <a0>0.15</a0>
+      <cla>6.8</cla>
+      <cda>0.06</cda>
+      <area>0.04</area>
+      <air_density>1.2041</air_density>
+      <forward>1 0 0</forward>
+      <upward>0 0 1</upward>
+      <link_name>base_link</link_name>
+      <control_joint_name>right_elevon_joint</control_joint_name>
+      <control_joint_rad_to_cl>-4.0</control_joint_rad_to_cl>
+    </plugin>
+    <!-- ========================================================= -->
+    <!-- IMU LINK (SENSOR FOR ARDUPILOT)                          -->
+    <!-- ========================================================= -->
+
+    <link name="imu_link">
+      <inertial>
+        <mass>0.001</mass>
+        <inertia>
+          <ixx>1e-9</ixx>
+          <iyy>1e-9</iyy>
+          <izz>1e-9</izz>
+        </inertia>
+      </inertial>
+      <sensor name="imu_sensor" type="imu">
+        <!-- Match orientation you used previously -->
+        <pose>0 0 0 3.141593 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>1000.0</update_rate>
+      </sensor>
+    </link>
+
+    <joint name="imu_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>imu_link</child>
+    </joint>
+
+    <!-- ========================================================= -->
+    <!-- GENERIC GAZEBO UTILITY PLUGINS                           -->
+    <!-- ========================================================= -->
+
+    <!-- Publish joint states for visualization / debugging -->
+    <plugin filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher"/>
+
+    <!-- Allow external systems (ArduPilotPlugin) to apply forces to joints -->
+    <plugin filename="gz-sim-apply-joint-force-system"
+            name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_0_joint</joint_name>
+    </plugin>
+
+    <plugin filename="gz-sim-apply-joint-force-system"
+            name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_1_joint</joint_name>
+    </plugin>
+
+    <plugin filename="gz-sim-apply-joint-force-system"
+            name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_2_joint</joint_name>
+    </plugin>
+
+    <plugin filename="gz-sim-apply-joint-force-system"
+            name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_3_joint</joint_name>
+    </plugin>
+
+    <plugin filename="gz-sim-apply-joint-force-system"
+            name="gz::sim::systems::ApplyJointForce">
+      <joint_name>rotor_pusher_joint</joint_name>
+    </plugin>
+
+    <plugin filename="gz-sim-apply-joint-force-system"
+            name="gz::sim::systems::ApplyJointForce">
+      <joint_name>left_elevon_joint</joint_name>
+    </plugin>
+
+    <plugin filename="gz-sim-apply-joint-force-system"
+            name="gz::sim::systems::ApplyJointForce">
+      <joint_name>right_elevon_joint</joint_name>
+    </plugin>
+
+    <!-- ========================================================= -->
+    <!-- ARDUPILOT INTERFACE PLUGIN                               -->
+    <!-- ========================================================= -->
+
+    <plugin name="ArduPilotPlugin" filename="libArduPilotPlugin.so">
+      <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
+      <lock_step>1</lock_step>
+
+      <!-- Coordinate transforms: same as your working setup -->
+      <modelXYZToAirplaneXForwardZDown degrees="true">
+        0 0 0 180 0 0
+      </modelXYZToAirplaneXForwardZDown>
+      <gazeboXYZToNED degrees="true">
+        0 0 0 180 0 90
+      </gazeboXYZToNED>
+
+      <imuName>imu_sensor</imuName>
+
+      <!-- Elevon controls (channels 0, 1) -->
+      <control channel="0">
+        <jointName>left_elevon_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>1.0</multiplier>
+        <!-- -0.5 offset centers the elevon at neutral -->
+        <offset>-0.5</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+        <type>POSITION</type>
+        <p_gain>10.0</p_gain>
+      </control>
+
+      <control channel="1">
+        <jointName>right_elevon_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>1.0</multiplier>
+        <offset>-0.5</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+        <type>POSITION</type>
+        <p_gain>10.0</p_gain>
+      </control>
+
+      <!-- Rear pusher motor (channel 2) - initially disabled (multiplier=0) -->
+      <control channel="2">
+        <jointName>rotor_pusher_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>0</multiplier>
+        <offset>0</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+        <type>VELOCITY</type>
+        <!-- Small P gain; will be used if multiplier is increased later -->
+        <p_gain>0.20</p_gain>
+        <cmd_max>3.5</cmd_max>
+        <cmd_min>-3.5</cmd_min>
+      </control>
+
+      <!-- VTOL motors (Quad X pattern) -->
+      <!-- rotor_0: front-right, CCW -->
+      <control channel="4">
+        <jointName>rotor_0_joint</jointName>
+        <useForce>1</useForce>
+        <!-- Positive sign for this spin direction -->
+        <multiplier>1050</multiplier>
+        <offset>0</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+        <type>VELOCITY</type>
+        <!-- Gentle P gain for smoother speed control -->
+        <p_gain>0.10</p_gain>
+        <cmd_max>3.5</cmd_max>
+        <cmd_min>-3.5</cmd_min>
+      </control>
+
+      <!-- rotor_1: rear-left, CCW -->
+      <control channel="5">
+        <jointName>rotor_1_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>1050</multiplier>
+        <offset>0</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+        <type>VELOCITY</type>
+        <p_gain>0.10</p_gain>
+        <cmd_max>3.5</cmd_max>
+        <cmd_min>-3.5</cmd_min>
+      </control>
+
+      <!-- rotor_2: front-left, CW -->
+      <control channel="6">
+        <jointName>rotor_2_joint</jointName>
+        <useForce>1</useForce>
+        <!-- Negative sign for opposite spin direction -->
+        <multiplier>-1050</multiplier>
+        <offset>0</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+        <type>VELOCITY</type>
+        <p_gain>0.10</p_gain>
+        <cmd_max>3.5</cmd_max>
+        <cmd_min>-3.5</cmd_min>
+      </control>
+
+      <!-- rotor_3: rear-right, CW -->
+      <control channel="7">
+        <jointName>rotor_3_joint</jointName>
+        <useForce>1</useForce>
+        <multiplier>-1050</multiplier>
+        <offset>0</offset>
+        <servo_min>1000</servo_min>
+        <servo_max>2000</servo_max>
+        <type>VELOCITY</type>
+        <p_gain>0.10</p_gain>
+        <cmd_max>3.5</cmd_max>
+        <cmd_min>-3.5</cmd_min>
+      </control>
+    </plugin>
+
+  </model>
+</sdf>
